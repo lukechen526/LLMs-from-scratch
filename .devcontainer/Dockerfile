@@ -4,7 +4,7 @@ FROM pytorch/pytorch:2.5.0-cuda12.4-cudnn9-runtime
 # Install Ubuntu packages
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y rsync git curl ca-certificates && \
+    apt-get install -y rsync git curl ca-certificates git-lfs && \
     rm -rf /var/lib/apt/lists/*
 
 # Install uv
