@@ -1,17 +1,30 @@
-# Install PyTorch 2.5 with CUDA 12.4
-FROM pytorch/pytorch:2.5.0-cuda12.4-cudnn9-runtime
+## Base image with PyTorch 2.8, CUDA 12.9
+FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
 
-# Install Ubuntu packages
+## System dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y rsync git curl ca-certificates git-lfs && \
+    apt-get install -y --no-install-recommends \
+    rsync git curl ca-certificates git-lfs && \
     rm -rf /var/lib/apt/lists/*
 
-# Install uv
+## Create a dedicated virtual environment (do not pollute system site-packages)
+ENV VENV_PATH=/opt/venv
+RUN python -m venv "$VENV_PATH" \
+    && "$VENV_PATH/bin/pip" install --no-cache-dir --upgrade pip
+ENV VIRTUAL_ENV=$VENV_PATH
+ENV PATH="$VENV_PATH/bin:$PATH"
+
+## Install uv (used for fast, reproducible installs)
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
 RUN sh /uv-installer.sh && rm /uv-installer.sh
-ENV PATH="/root/.local/bin/:$PATH"
+ENV PATH="/root/.local/bin:$PATH"
 
-# Install Python packages
-COPY requirements.txt requirements.txt
-RUN uv pip install --system --no-cache -r requirements.txt
+## Copy dependency manifests early for better layer caching
+COPY requirements.txt ./
+# (Optional) If you prefer pyproject + lock, uncomment and copy them instead:
+# COPY pyproject.toml uv.lock ./
+
+## Install Python dependencies into the virtual environment
+# Using uv targeting the venv's python for speed & resolution
+RUN uv pip install --python "$VENV_PATH/bin/python" --no-cache -r requirements.txt
