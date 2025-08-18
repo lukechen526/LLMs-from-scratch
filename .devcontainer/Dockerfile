@@ -5,7 +5,7 @@ FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-    rsync git curl ca-certificates git-lfs && \
+    rsync git curl ca-certificates git-lfs openssh-client && \
     rm -rf /var/lib/apt/lists/*
 
 ## Create a dedicated virtual environment (do not pollute system site-packages)
